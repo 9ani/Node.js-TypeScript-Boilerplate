@@ -7,28 +7,30 @@ class EventService {
         return await EventModel.findById(id).exec();
     }
 
-    async getEvents(city?: string, page: number = 1, limit: number = 10): Promise<{ events: IEvent[], totalPages: number, currentPage: number }> {
-      const query = city ? { city } : {};
-  
-      try {
-          const events = await EventModel.find(query)
-              .limit(limit)
-              .skip((page - 1) * limit)
-              .exec();
-  
-          const count = await EventModel.countDocuments(query);
-  
-          return {
-              events: events, 
-              totalPages: Math.ceil(count / limit),
-              currentPage: page,
-          };
-      } catch (error: any) {
-          console.error('Error fetching events:', error.message);
-          throw error;
+    async getEvents(city?: string, page = 1, limit = 10, sortBy?: string, sortDirection?: string): Promise<{ events: IEvent[]; totalPages: number; currentPage: number; }> {
+      const options: any = {};
+
+      if (city) {
+          options.city = city;
       }
+
+      const sortOptions: any = {};
+      if (sortBy && ['name', 'date', 'rating'].includes(sortBy)) {
+          sortOptions[sortBy] = sortDirection === 'desc' ? -1 : 1;
+      }
+
+      const count = await EventModel.countDocuments(options);
+      const totalPages = Math.ceil(count / limit);
+      const currentPage = page;
+
+      const events = await EventModel.find(options)
+          .sort(sortOptions)
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .exec();
+
+      return { events, totalPages, currentPage };
   }
-  
 
     async createEvent(createEventDto: CreateEventDto): Promise<IEvent> {
         const { name, description, date, location, duration, city } = createEventDto;
