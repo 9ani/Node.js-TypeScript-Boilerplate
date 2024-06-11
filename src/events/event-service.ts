@@ -1,43 +1,40 @@
-import mongoose from 'mongoose';
 import { CreateEventDto } from './dtos/CreateEvent.dot';
 import EventModel, { IEvent } from './models/Event';
-import { Event } from './types/response';
 
-
-
-// this event service instance shows how to create a event, get a event by id, and get all events with in-memory data
 class EventService {
-  
+
     async getEventById(id: string): Promise<IEvent | null> {
-      return await EventModel.findById(id).exec();
+        return await EventModel.findById(id).exec();
     }
 
     async getEvents(city?: string): Promise<IEvent[]> {
-      if (city) {
-        return await EventModel.find({ city }).exec();
-      } else {
-        return await EventModel.find().exec();
-      }
+        if (city) {
+            console.log(`Finding events for city: ${city}`);
+            const events = await EventModel.find({ city }).exec();
+            console.log(`Found events for city ${city}:`, events);
+            return events;
+        } else {
+            console.log('Finding all events');
+            const events = await EventModel.find().exec();
+            console.log('Found all events:', events);
+            return events;
+        }
     }
-    
 
     async createEvent(createEventDto: CreateEventDto): Promise<IEvent> {
-      const { name, description, date, location ,duration, city} = createEventDto;
-      const newEvent = new EventModel({
-        name,
-        description,
-        date: new Date(date),
-        location,
-        duration,
-        city,
-      });
-  
-      await newEvent.save();
-      return newEvent;
+        const { name, description, date, location, duration, city } = createEventDto;
+        const newEvent = new EventModel({
+            name,
+            description,
+            date: new Date(date),
+            location,
+            duration,
+            city,
+        });
+
+        await newEvent.save();
+        return newEvent;
     }
-  
-    
-  }
-  
-  export default EventService;
-  
+}
+
+export default EventService;
