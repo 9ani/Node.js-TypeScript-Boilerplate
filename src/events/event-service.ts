@@ -7,19 +7,28 @@ class EventService {
         return await EventModel.findById(id).exec();
     }
 
-    async getEvents(city?: string): Promise<IEvent[]> {
-        if (city) {
-            console.log(`Finding events for city: ${city}`);
-            const events = await EventModel.find({ city }).exec();
-            console.log(`Found events for city ${city}:`, events);
-            return events;
-        } else {
-            console.log('Finding all events');
-            const events = await EventModel.find().exec();
-            console.log('Found all events:', events);
-            return events;
-        }
-    }
+    async getEvents(city?: string, page: number = 1, limit: number = 10): Promise<{ events: IEvent[], totalPages: number, currentPage: number }> {
+      const query = city ? { city } : {};
+  
+      try {
+          const events = await EventModel.find(query)
+              .limit(limit)
+              .skip((page - 1) * limit)
+              .exec();
+  
+          const count = await EventModel.countDocuments(query);
+  
+          return {
+              events: events, 
+              totalPages: Math.ceil(count / limit),
+              currentPage: page,
+          };
+      } catch (error: any) {
+          console.error('Error fetching events:', error.message);
+          throw error;
+      }
+  }
+  
 
     async createEvent(createEventDto: CreateEventDto): Promise<IEvent> {
         const { name, description, date, location, duration, city } = createEventDto;

@@ -33,29 +33,42 @@ class EventController {
     //   }
     getEvents = async (req: Request, res: Response): Promise<void> => {
       try {
-        console.log('Fetching events...');
+          console.log('Fetching events...');
   
-        let events: IEvent[];
+          let events: IEvent[];
   
-        if ((req as any).user) {
-          const user = (req as any).user as IUser;
+          if (!(req.headers.authorization)) {
+              console.log('Authorization header missing. Fetching all events.');
+              const result = await this.eventService.getEvents();
+              events = result.events;
+              console.log('Fetched all events:', events);
+          } else {
+              if ((req as any).user) {
+                  const user = (req as any).user as IUser;
   
-          console.log(`Fetching events for city: ${user.city}`);
-          events = await this.eventService.getEvents(user.city);
-          console.log(`Fetched events for city ${user.city}:`, events);
-        } else {
-          console.log('Fetching all events');
-          events = await this.eventService.getEvents();
-          console.log('Fetched all events:', events);
-        }
+                  console.log(`Fetching events for city: ${user.city}`);
+                  const result = await this.eventService.getEvents(user.city);
+                  events = result.events;
+                  console.log(`Fetched events for city ${user.city}:`, events);
+              } else {
+                  console.log('Fetching all events');
+                  const result = await this.eventService.getEvents();
+                  events = result.events;
+                  console.log('Fetched all events:', events);
+              }
+          }
   
-        console.log('Events fetched successfully');
-        res.status(200).json(events);
+          console.log('Events fetched successfully');
+          res.status(200).json(events);
       } catch (error: any) {
-        console.error('Error fetching events:', error.message);
-        res.status(500).json({ error: error.message });
+          console.error('Error fetching events:', error.message);
+          res.status(500).json({ error: error.message });
       }
-    }
+  }
+  
+  
+  
+  
     
 
 
