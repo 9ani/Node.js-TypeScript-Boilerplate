@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { CreateEventDto } from './dtos/CreateEvent.dot';
 import EventService from './event-service';
-
+import { IUser } from '../auth/models/User';
+import EventModel, { IEvent } from './models/Event';
 class EventController {
     private eventService : EventService;
 
@@ -22,15 +23,37 @@ class EventController {
 
 
 
+    // getEvents = async (req: Request, res: Response): Promise<void> => {
+    //     try {
+    //       const events = await this.eventService.getEvents();
+    //       res.status(200).json(events);
+    //     } catch (error: any) {
+    //       res.status(500).send({ error: error.message });
+    //     }
+    //   }
     getEvents = async (req: Request, res: Response): Promise<void> => {
-        try {
-          const events = await this.eventService.getEvents();
+      try {
+          console.log('Fetching events...');
+    
+          let events: IEvent[];
+    
+          if (req.user) {
+              const user = req.user as IUser;
+    
+              console.log(`Fetching events for city: ${user.city}`);
+              events = await EventModel.find({ city: user.city });
+          } else {
+              console.log('Fetching all events');
+              events = await EventModel.find();
+          }
+    
+          console.log('Events fetched successfully');
           res.status(200).json(events);
-        } catch (error: any) {
-          res.status(500).send({ error: error.message });
-        }
+      } catch (error: any) {
+          console.error('Error fetching events:', error.message);
+          res.status(500).json({ error: error.message });
       }
-
+    }
     
 
 
