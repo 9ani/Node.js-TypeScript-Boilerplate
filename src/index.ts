@@ -3,6 +3,8 @@ import express from 'express';
 import connectDB from './db';
 import globalRouter from './global-router';
 import { logger } from './logger';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
